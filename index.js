@@ -65,9 +65,7 @@ addEventListener("fetch", async event => {
         }
       }
 
-      const targetUrl = decodeURIComponent(
-        decodeURIComponent(originUrl.search.substr(1))
-      );
+      const targetUrl = originUrl.pathname.slice(1) + originUrl.search;
 
       const originHeader = event.request.headers.get("Origin");
       const connectingIp = event.request.headers.get("CF-Connecting-IP");
@@ -84,7 +82,7 @@ addEventListener("fetch", async event => {
           } catch (e) {}
         }
 
-        if (originUrl.search.startsWith("?")) {
+        if (targetUrl) {
           const filteredHeaders = {};
           for (const [key, value] of event.request.headers.entries()) {
             if (
@@ -129,9 +127,7 @@ addEventListener("fetch", async event => {
             JSON.stringify(allResponseHeaders)
           );
 
-          const responseBody = isPreflightRequest
-            ? null
-            : await response.arrayBuffer();
+          const responseBody = isPreflightRequest ? null : await response.body;
 
           const responseInit = {
             headers: responseHeaders,
@@ -151,15 +147,7 @@ addEventListener("fetch", async event => {
           }
 
           return new Response(
-            "CLOUDFLARE-CORS-ANYWHERE\n\n" +
-              "Source:\nhttps://github.com/Zibri/cloudflare-cors-anywhere\n\n" +
-              "Usage:\n" +
-              originUrl.origin +
-              "/?uri\n\n" +
-              "Donate:\nhttps://paypal.me/Zibri/5\n\n" +
-              "Limits: 100,000 requests/day\n" +
-              "          1,000 requests/10 minutes\n\n" +
-              (originHeader !== null ? "Origin: " + originHeader + "\n" : "") +
+            (originHeader !== null ? "Origin: " + originHeader + "\n" : "") +
               "IP: " +
               connectingIp +
               "\n" +
